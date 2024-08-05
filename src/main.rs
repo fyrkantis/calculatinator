@@ -65,7 +65,15 @@ fn calculatinate(expression: &Exp) -> f64 {
 }
 
 fn parse_number(equation: &str, negate: bool, invert: bool) -> Exp {
-	
+	println!("{}", equation);
+	Exp::Number{
+		value: equation.parse().unwrap(),
+		negate: negate,
+		invert: invert
+	}
+}
+
+fn parse_nested(equation: &str, negate: bool, invert: bool) -> Exp {
 	let mut actually_negate = negate; // TODO: Do this prooperly.
 	let mut actual_equation = equation;
 	if equation.chars().next().unwrap() == '-' {
@@ -83,20 +91,15 @@ fn parse_number(equation: &str, negate: bool, invert: bool) -> Exp {
 				invert: invert
 			}
 		},
-		None => Exp::Number{
-			value: actual_equation.parse().unwrap(),
-			negate: actually_negate,
-			invert: invert
-		}
+		None => parse_number(actual_equation, actually_negate, invert)
 	}
 }
 
-
 fn parse_factor(equation: &str, negate: bool, invert: bool) -> Exp {
 	match split_at(equation, '*', '/') {
-		Split::Normal((a, b)) => Exp::Factor(Box::from(parse_number(a, negate, invert)), Box::from(parse_factor(b, false, false))),
-		Split::Inverse((a, b)) => Exp::Factor(Box::from(parse_number(a, negate, invert)), Box::from(parse_factor(b, false, true))),
-		Split::Single(a) => parse_number(a, negate, invert)
+		Split::Normal((a, b)) => Exp::Factor(Box::from(parse_nested(a, negate, invert)), Box::from(parse_factor(b, false, false))),
+		Split::Inverse((a, b)) => Exp::Factor(Box::from(parse_nested(a, negate, invert)), Box::from(parse_factor(b, false, true))),
+		Split::Single(a) => parse_nested(a, negate, invert)
 	}
 }
 
