@@ -19,6 +19,7 @@ fn split_at<'a>(string: &'a str, split_character: char, inverse_character: char)
 	let mut last_char = '™'; // TODO: Eeeewwww!
 	let mut nesting_depth: usize = 0;
 	for (i, character) in string.trim().chars().enumerate() {
+		println!("'{}'", character);
 		if character == '(' {
 			nesting_depth += 1;
 		}
