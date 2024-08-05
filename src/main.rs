@@ -1,4 +1,5 @@
 use std::io;
+use std::env;
 
 enum Exp {
 	Term(Box<Exp>, Box<Exp>),
@@ -15,7 +16,7 @@ enum Split<T> {
 	Single(T)
 }
 fn split_at<'a>(string: &'a str, split_character: char, inverse_character: char) -> Split<&'a str> {
-	let mut last_char = '™';
+	let mut last_char = '™'; // TODO: Eeeewwww!
 	let mut nesting_depth: usize = 0;
 	for (i, character) in string.trim().chars().enumerate() {
 		if character == '(' {
@@ -31,7 +32,7 @@ fn split_at<'a>(string: &'a str, split_character: char, inverse_character: char)
 			if character == split_character {
 				return Split::Normal((&string[..i], &string[i+1..]));
 			} else if character == inverse_character {
-				return Split::Opposite((&string[..i], &string[i+1..]));
+				return Split::Opposite((&string[..i], &string[i+1..])); // TODO: Fix this to handle funny unicode characters with multiple bytes.
 			}
 		}
 		last_char = character;
@@ -80,11 +81,19 @@ fn parse_nested(equation: &str) -> Exp {
 	}
 }
 
+fn parse_power(equation: &str) -> Exp {
+	match split_at(equation, '^', '√') {
+		Split::Normal((a, b)) => Exp::Pow(Box::from(parse_nested(a)), Box::from(parse_nested(b))),
+		Split::Opposite((a, b)) => Exp::Pow(Box::from(parse_nested(b)), Box::from(Exp::Inverse(Box::from(parse_nested(a))))),
+		Split::Single(a) => parse_nested(a)
+	}
+}
+
 fn parse_factor(equation: &str) -> Exp {
 	match split_at(equation, '*', '/') {
-		Split::Normal((a, b)) => Exp::Factor(Box::from(parse_nested(a)), Box::from(parse_factor(b))),
-		Split::Opposite((a, b)) => Exp::Factor(Box::from(parse_nested(a)), Box::from(Exp::Inverse(Box::from(parse_factor(b))))),
-		Split::Single(a) => parse_nested(a)
+		Split::Normal((a, b)) => Exp::Factor(Box::from(parse_power(a)), Box::from(parse_factor(b))),
+		Split::Opposite((a, b)) => Exp::Factor(Box::from(parse_power(a)), Box::from(Exp::Inverse(Box::from(parse_factor(b))))),
+		Split::Single(a) => parse_power(a)
 	}
 }
 
@@ -105,6 +114,7 @@ fn parse(equation: &str) -> Exp {
 }
 
 fn main() {
+	env::set_var("RUST_BACKTRACE", "1");
 	println!("Calculatinator™");
 	loop {
 		print!("> ");
