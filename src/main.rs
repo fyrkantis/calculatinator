@@ -4,12 +4,14 @@ enum Exp {
 	Term(Box<Exp>, Box<Exp>),
 	Factor(Box<Exp>, Box<Exp>),
 	Number(f64),
+	Negative(Box<Exp>),
+	Inverse(Box<Exp>),
 	Pow(Box<Exp>, Box<Exp>)
 }
 
 enum Split<T> {
 	Normal((T, T)),
-	Inverse((T, T)),
+	Opposite((T, T)),
 	Single(T)
 }
 fn split_at<'a>(string: &'a str, split_character: char, inverse_character: char) -> Split<&'a str> {
@@ -29,7 +31,7 @@ fn split_at<'a>(string: &'a str, split_character: char, inverse_character: char)
 			if character == split_character {
 				return Split::Normal((&string[..i], &string[i+1..]));
 			} else if character == inverse_character {
-				return Split::Inverse((&string[..i], &string[i+1..]));
+				return Split::Opposite((&string[..i], &string[i+1..]));
 			}
 		}
 		last_char = character;
@@ -42,7 +44,9 @@ fn calculatinate(expression: &Exp) -> f64 {
 		Exp::Term(a, b) => calculatinate(a) + calculatinate(b),
 		Exp::Factor(a, b) => calculatinate(a) * calculatinate(b),
 		Exp::Number(value) => *value,
-		Exp::Pow(a, b) => f64::powf(calculatinate(a), calculatinate(b))
+		Exp::Pow(a, b) => f64::powf(calculatinate(a), calculatinate(b)),
+		Exp::Negative(a) => -calculatinate(a),
+		Exp::Inverse(a) => f64::powi(calculatinate(a), -1)
 	}
 }
 
@@ -62,17 +66,15 @@ fn parse_nested(equation: &str) -> Exp {
 			let mut chars = actual_equation.chars();
 			chars.next();
 			chars.next_back();
-			if negate {
-				Exp::Factor(Box::from(parse_term(chars.as_str())), Box::from(Exp::Number(-1.)))
-			} else {
-				parse_term(chars.as_str())
+			match negate {
+				true => Exp::Negative(Box::from(parse_term(chars.as_str()))),
+				false => parse_term(chars.as_str())
 			}
 		},
 		None => {
-			if negate {
-				Exp::Factor(Box::from(parse_number(actual_equation)), Box::from(Exp::Number(-1.)))
-			} else {
-				parse_number(actual_equation)
+			match negate {
+				true => Exp::Negative(Box::from(parse_number(actual_equation))),
+				false => parse_number(actual_equation)
 			}
 		}
 	}
@@ -81,7 +83,7 @@ fn parse_nested(equation: &str) -> Exp {
 fn parse_factor(equation: &str) -> Exp {
 	match split_at(equation, '*', '/') {
 		Split::Normal((a, b)) => Exp::Factor(Box::from(parse_nested(a)), Box::from(parse_factor(b))),
-		Split::Inverse((a, b)) => Exp::Factor(Box::from(parse_nested(a)), Box::from(Exp::Pow(Box::from(parse_factor(b)), Box::from(Exp::Number(-1.))))),
+		Split::Opposite((a, b)) => Exp::Factor(Box::from(parse_nested(a)), Box::from(Exp::Inverse(Box::from(parse_factor(b))))),
 		Split::Single(a) => parse_nested(a)
 	}
 }
@@ -89,7 +91,7 @@ fn parse_factor(equation: &str) -> Exp {
 fn parse_term(equation: &str) -> Exp {
 	match split_at(equation, '+', '-') {
 		Split::Normal((a, b)) => Exp::Term(Box::from(parse_factor(a)), Box::from(parse_term(b))),
-		Split::Inverse((a, b)) => Exp::Term(Box::from(parse_factor(a)), Box::from(Exp::Factor(Box::from(parse_term(b)), Box::from(Exp::Number(-1.))))),
+		Split::Opposite((a, b)) => Exp::Term(Box::from(parse_factor(a)), Box::from(Exp::Negative(Box::from(parse_term(b))))),
 		Split::Single(a) => parse_factor(a)
 	}
 }
