@@ -51,6 +51,27 @@ fn calculatinate(expression: &Exp) -> f64 {
 	}
 }
 
+fn printiate(expression: &Exp) -> String {
+	match expression {
+		Exp::Term(a, b) => /*{
+			match **b {
+				Exp::Negative(b_child) => format!("{}-{}", printiate(&a), printiate(&b_child)),
+				_ => */format!("{}+{}", printiate(&a), printiate(&b))/*
+			}
+		}*/,
+		Exp::Factor(a, b) => format!("{}*{}", printiate(&a), printiate(&b)),
+		Exp::Number(value) => format!("{}", value),
+		Exp::Pow(a, b) => format!("{}^{}", printiate(&a), printiate(&b)),
+		Exp::Negative(a) => {
+			match **a {
+				Exp::Term(_, _) | Exp::Factor(_, _) | Exp::Negative(_) => format!("-({})", printiate(&a)),
+				_ => format!("-{}", printiate(&a))
+			}
+		},
+		Exp::Inverse(a) => format!("(1/{})", printiate(&a))
+	}
+}
+
 fn parse_number(equation: &str) -> Exp {
 	Exp::Number(equation.parse().unwrap())
 }
@@ -122,6 +143,7 @@ fn main() {
 		io::Write::flush(&mut io::stdout()).unwrap();
 		io::stdin().read_line(&mut output).unwrap();
 		let equation = parse(&output);
+		println!("{}", printiate(&equation));
 		println!("= {}", calculatinate(&equation));
 
 		if output == "" {
