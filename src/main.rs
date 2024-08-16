@@ -62,6 +62,12 @@ fn printiate(expression: &Exp, parenthesize: bool) -> String {
 		Exp::Term(a, b) => {
 			match b.as_ref() {
 				Exp::Negative(b_child) => parenthesis(format!("{}-{}", printiate(&a, false), printiate(&b_child, true))),
+				Exp::Term(b_child_a, _b_child_b) => {
+					match b_child_a.as_ref() {
+						Exp::Negative(_) => parenthesis(format!("{}{}", printiate(&a, false), printiate(&b, false))),
+						_ => parenthesis(format!("{}+{}", printiate(&a, false), printiate(&b, false)))
+					}
+				}
 				_ => parenthesis(format!("{}+{}", printiate(&a, false), printiate(&b, false)))
 			}
 		},
@@ -95,8 +101,8 @@ fn parse_nested(equation: &str) -> Exp {
 			chars.next();
 			chars.next_back();
 			match negate {
-				true => Exp::Negative(Box::from(parse_term(chars.as_str()))),
-				false => parse_term(chars.as_str())
+				true => Exp::Negative(Box::from(parse_term(chars.as_str(), false))),
+				false => parse_term(chars.as_str(), false)
 			}
 		},
 		None => {
@@ -124,11 +130,17 @@ fn parse_factor(equation: &str) -> Exp {
 	}
 }
 
-fn parse_term(equation: &str) -> Exp { // BUG: 1-0+1 is treated as 1-(0+1).
+fn parse_term(equation: &str, negate: bool) -> Exp {
+	let negated = |exponent: Exp| {
+		if negate {
+			return Exp::Negative(Box::from(exponent))
+		}
+		exponent
+	};
 	match split_at(equation, '+', '-') {
-		Split::Normal((a, b)) => Exp::Term(Box::from(parse_factor(a)), Box::from(parse_term(b))),
-		Split::Opposite((a, b)) => Exp::Term(Box::from(parse_factor(a)), Box::from(Exp::Negative(Box::from(parse_term(b))))),
-		Split::Single(a) => parse_factor(a)
+		Split::Normal((a, b)) => Exp::Term(Box::from(negated(parse_factor(a))), Box::from(parse_term(b, false))),
+		Split::Opposite((a, b)) => Exp::Term(Box::from(negated(parse_factor(a))), Box::from(parse_term(b, true))),
+		Split::Single(a) => negated(parse_factor(a))
 	}
 }
 
@@ -137,7 +149,7 @@ fn remove_whitespace(string: &str) -> String {
 }
 
 fn parse(equation: &str) -> Exp {
-	parse_term(&remove_whitespace(equation))
+	parse_term(&remove_whitespace(equation), false)
 }
 
 fn main() {
