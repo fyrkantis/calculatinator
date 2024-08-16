@@ -4,10 +4,10 @@ use std::env;
 enum Exp {
 	Term(Box<Exp>, Box<Exp>),
 	Factor(Box<Exp>, Box<Exp>),
-	Number(f64),
+	Pow(Box<Exp>, Box<Exp>),
 	Negative(Box<Exp>),
 	Inverse(Box<Exp>),
-	Pow(Box<Exp>, Box<Exp>)
+	Number(f64)
 }
 
 enum Split<T> {
@@ -44,31 +44,37 @@ fn calculatinate(expression: &Exp) -> f64 {
 	match expression {
 		Exp::Term(a, b) => calculatinate(a) + calculatinate(b),
 		Exp::Factor(a, b) => calculatinate(a) * calculatinate(b),
-		Exp::Number(value) => *value,
 		Exp::Pow(a, b) => f64::powf(calculatinate(a), calculatinate(b)),
 		Exp::Negative(a) => -calculatinate(a),
-		Exp::Inverse(a) => f64::powi(calculatinate(a), -1)
+		Exp::Inverse(a) => f64::powi(calculatinate(a), -1),
+		Exp::Number(value) => *value
 	}
 }
 
-fn printiate(expression: &Exp) -> String {
+fn printiate(expression: &Exp, parenthesize: bool) -> String {
+	let parenthesis = |input: String| -> String {
+		if parenthesize {
+			return format!("({})", input)
+		}
+		input
+	};
 	match expression {
-		Exp::Term(a, b) => /*{
-			match **b {
-				Exp::Negative(b_child) => format!("{}-{}", printiate(&a), printiate(&b_child)),
-				_ => */format!("{}+{}", printiate(&a), printiate(&b))/*
-			}
-		}*/,
-		Exp::Factor(a, b) => format!("{}*{}", printiate(&a), printiate(&b)),
-		Exp::Number(value) => format!("{}", value),
-		Exp::Pow(a, b) => format!("{}^{}", printiate(&a), printiate(&b)),
-		Exp::Negative(a) => {
-			match **a {
-				Exp::Term(_, _) | Exp::Factor(_, _) | Exp::Negative(_) => format!("-({})", printiate(&a)),
-				_ => format!("-{}", printiate(&a))
+		Exp::Term(a, b) => {
+			match b.as_ref() {
+				Exp::Negative(b_child) => parenthesis(format!("{}-{}", printiate(&a, false), printiate(&b_child, true))),
+				_ => parenthesis(format!("{}+{}", printiate(&a, false), printiate(&b, false)))
 			}
 		},
-		Exp::Inverse(a) => format!("(1/{})", printiate(&a))
+		Exp::Factor(a, b) => {
+			match b.as_ref() {
+				Exp::Inverse(b_child) => format!("{}/{}", printiate(&a, true), printiate(&b_child, true)),
+				_ => format!("{}*{}", printiate(&a, true), printiate(&b, true))
+			}
+		},
+		Exp::Pow(a, b) => format!("{}^{}", printiate(&a, true), printiate(&b, true)),
+		Exp::Negative(a) => parenthesis(format!("-{}", printiate(&a, true))),
+		Exp::Inverse(a) => format!("1/{}", printiate(&a, true)),
+		Exp::Number(value) => format!("{}", value)
 	}
 }
 
@@ -118,7 +124,7 @@ fn parse_factor(equation: &str) -> Exp {
 	}
 }
 
-fn parse_term(equation: &str) -> Exp {
+fn parse_term(equation: &str) -> Exp { // BUG: 1-0+1 is treated as 1-(0+1).
 	match split_at(equation, '+', '-') {
 		Split::Normal((a, b)) => Exp::Term(Box::from(parse_factor(a)), Box::from(parse_term(b))),
 		Split::Opposite((a, b)) => Exp::Term(Box::from(parse_factor(a)), Box::from(Exp::Negative(Box::from(parse_term(b))))),
@@ -143,7 +149,7 @@ fn main() {
 		io::Write::flush(&mut io::stdout()).unwrap();
 		io::stdin().read_line(&mut output).unwrap();
 		let equation = parse(&output);
-		println!("{}", printiate(&equation));
+		println!("{}", printiate(&equation, false));
 		println!("= {}", calculatinate(&equation));
 
 		if output == "" {
