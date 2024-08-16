@@ -77,12 +77,22 @@ fn printiate(expression: &Exp, parenthesize: bool) -> String {
 				_ => format!("{}*{}", printiate(&a, true), printiate(&b, true))
 			}
 		},
-		Exp::Pow(a, b) => format!("{}^{}", printiate(&a, true), printiate(&b, true)),
+		Exp::Pow(a, b) => parenthesis(format!("{}^{}", printiate(&a, true), printiate(&b, true))),
 		Exp::Negative(a) => parenthesis(format!("-{}", printiate(&a, true))),
 		Exp::Inverse(a) => format!("1/{}", printiate(&a, true)),
 		Exp::Number(value) => format!("{}", value)
 	}
 }
+
+/*fn fractinate(expression: &Exp) -> Exp {
+	fn sum(a: Exp, b: Exp) -> Exp {
+
+	}
+	match expression {
+		Exp::Term(a, b) => sum(fractinate(&a), fractinate(&b)),
+		Exp::Factor(a, b) =>
+	}
+}*/
 
 fn parse_number(equation: &str) -> Exp {
 	Exp::Number(equation.parse().unwrap())
