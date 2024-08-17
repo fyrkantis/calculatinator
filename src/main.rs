@@ -84,15 +84,67 @@ fn printiate(expression: &Exp, parenthesize: bool) -> String {
 	}
 }
 
-/*fn fractinate(expression: &Exp) -> Exp {
-	fn sum(a: Exp, b: Exp) -> Exp {
+struct Fraction {
+	numerator: u32,
+	denominator: u32,
+	positive: bool
+}
 
-	}
+fn fractinate(expression: &Exp) -> Fraction {
 	match expression {
-		Exp::Term(a, b) => sum(fractinate(&a), fractinate(&b)),
-		Exp::Factor(a, b) =>
-	}
-}*/
+		Exp::Term(a, b) => {
+			let (a_frac, b_frac) = (fractinate(a), fractinate(b));
+			let (a_num, b_num) = (a_frac.numerator * b_frac.denominator, b_frac.numerator * a_frac.denominator); // TODO: Make more efficient by looking for common denominators.
+			let adding = a_frac.positive == b_frac.positive;
+			Fraction {
+				numerator: match adding {
+					true => a_num + b_num,
+					false => a_num.abs_diff(b_num)
+				},
+				denominator: a_frac.denominator * b_frac.denominator,
+				positive: match adding { // TODO: Replace this mess of nested match statements.
+					true => a_frac.positive,
+					false => match a_num > b_num {
+						true => a_frac.positive,
+						false => b_frac.positive
+					}
+				}
+			}
+		},
+		Exp::Factor(a, b) => {
+			let (a_frac, b_frac) = (fractinate(a), fractinate(b));
+			Fraction {
+				numerator: a_frac.numerator * b_frac.numerator,
+				denominator: a_frac.denominator * b_frac.denominator,
+				positive: a_frac.positive == b_frac.positive
+			}
+		},
+		Exp::Pow(a, b) => todo!(), // TODO: Implement!
+		Exp::Negative(a) => {
+			let frac = fractinate(a);
+			Fraction {
+				numerator: frac.numerator,
+				denominator: frac.denominator,
+				positive: !frac.positive
+			}
+		},
+		Exp::Inverse(a) => {
+			let frac = fractinate(a);
+			Fraction {
+				numerator: frac.denominator,
+				denominator: frac.numerator,
+				positive: frac.positive
+			}
+		},
+		Exp::Number(value) => {
+			Fraction {
+				numerator: value.abs() as u32,
+				denominator: 1, // TODO: Handle decimal numbers by adding factors of 10 to the denominator.
+				positive: *value >= 0.
+			}
+		}
+}
+}
 
 fn parse_number(equation: &str) -> Exp {
 	Exp::Number(equation.parse().unwrap())
@@ -173,6 +225,10 @@ fn main() {
 		let equation = parse(&output);
 		println!("{}", printiate(&equation, false));
 		println!("= {}", calculatinate(&equation));
+		let frac = fractinate(&equation);
+		let sign = match frac.positive {true => "", false => "-"};
+		let denom = match frac.denominator {1 => String::new(), denominator => format!("/{}", denominator)};
+		println!("= {}{}{} ({}{})", sign, frac.numerator, denom, sign, frac.numerator as f64 / frac.denominator as f64);
 
 		if output == "" {
 			break;
