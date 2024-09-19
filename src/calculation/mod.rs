@@ -58,6 +58,17 @@ pub mod fractinator {
 		pub denominator: u32,
 		pub positive: bool
 	}
+	impl Fraction {
+		pub fn to_str(&self) -> String {
+			let sign = match self.positive {true => "", false => "-"};
+			let denom = match self.denominator {1 => String::new(), denominator => format!("/{}", denominator)};
+			format!("{}{}{}", sign, self.numerator, denom)
+		}
+
+		pub fn to_float(&self) -> f64 {
+			self.numerator as f64 / self.denominator as f64
+		}
+	}
 
 	pub fn fractinate(expression: &Exp) -> Fraction {
 		match expression {
