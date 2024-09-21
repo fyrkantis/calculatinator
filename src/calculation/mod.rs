@@ -17,7 +17,7 @@ pub mod printinator {
 	pub use crate::util::exp::Exp;
 
 	pub fn printiate(expression: &Exp, parenthesize: bool) -> String {
-		let parenthesis = |input: String| -> String {
+		let parenthesis = |input: String| -> String { // TODO: Is this really the prettiest possible solution?
 			if parenthesize {
 				return format!("({})", input)
 			}
@@ -38,7 +38,7 @@ pub mod printinator {
 			},
 			Exp::Factor(a, b) => {
 				match b.as_ref() {
-					Exp::Inverse(b_child) => format!("{}/{}", printiate(&a, true), printiate(&b_child, true)),
+					Exp::Inverse(b_child) => parenthesis(format!("{}/{}", printiate(&a, true), printiate(&b_child, true))),
 					_ => format!("{}*{}", printiate(&a, true), printiate(&b, true))
 				}
 			},
@@ -56,7 +56,8 @@ pub mod fractinator {
 	pub struct Fraction {
 		pub numerator: u32,
 		pub denominator: u32,
-		pub positive: bool
+		pub positive: bool/*, // TODO: Default parameters?
+		pub root: u32*/
 	}
 	impl Fraction {
 		pub fn to_str(&self) -> String {
@@ -66,7 +67,17 @@ pub mod fractinator {
 		}
 
 		pub fn to_float(&self) -> f64 {
-			self.numerator as f64 / self.denominator as f64
+			let mut result = self.numerator as f64;
+			if self.denominator != 0 {
+				result /= self.denominator as f64;
+			}
+			if !self.positive {
+				result *= -1.;
+			}
+			/*if root != 1 {
+				return f64::powf(result, f64::powi(root, -1));
+			}*/
+			result
 		}
 	}
 
@@ -99,7 +110,20 @@ pub mod fractinator {
 					positive: a_frac.positive == b_frac.positive
 				}
 			},
-			Exp::Pow(a, b) => todo!(), // TODO: Implement!
+			Exp::Pow(a, b) => {
+				let (a_frac, b_frac) = (fractinate(a), fractinate(b));
+				if b_frac.denominator > 1 {
+					println!("WARNING: Raising to the power of a fraction (roots) is not implemented."); // TODO: Implement!
+				}
+				/*if !a_frac.positive && b_frac.denominator > 1 { // BUG: This will handle 2/2 as a root, simplify first.
+					panic!("Imaginary numbers are not implemented. (negative root)"); // TODO: Better error handling.
+				}*/ // BUG: Negative odd roots should be possible.
+				Fraction {
+					numerator: u32::pow(a_frac.numerator, b_frac.numerator), // BUG: Too large numbers *will* crash the program.
+					denominator: u32::pow(a_frac.denominator, b_frac.numerator),
+					positive: a_frac.positive || b_frac.numerator % 2 == 0
+				}
+			},
 			Exp::Negative(a) => {
 				let frac = fractinate(a);
 				Fraction {
@@ -110,6 +134,7 @@ pub mod fractinator {
 			},
 			Exp::Inverse(a) => {
 				let frac = fractinate(a);
+				if frac.numerator == 0 {panic!("Division by zero.");} // TODO: Better error handling.
 				Fraction {
 					numerator: frac.denominator,
 					denominator: frac.numerator,
