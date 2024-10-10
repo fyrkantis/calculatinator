@@ -56,8 +56,8 @@ pub mod fractinator {
 	pub struct Fraction {
 		pub numerator: u32,
 		pub denominator: u32,
-		pub positive: bool/*, // TODO: Default parameters?
-		pub root: u32*/
+		pub positive: bool,
+		pub power: Option<Box<Vec<Fraction>>>
 	}
 	impl Fraction {
 		pub fn to_str(&self) -> String {
@@ -80,6 +80,16 @@ pub mod fractinator {
 			result
 		}
 	}
+	impl Default for Fraction {
+		fn default() -> Fraction {
+			Fraction {
+				numerator: 0,
+				denominator: 1,
+				positive: true,
+				power: None
+			}
+		}
+	}
 
 	pub fn fractinate(expression: &Exp) -> Fraction {
 		match expression {
@@ -99,7 +109,8 @@ pub mod fractinator {
 							true => a_frac.positive,
 							false => b_frac.positive
 						}
-					}
+					},
+					..Default::default()
 				}
 			},
 			Exp::Factor(a, b) => {
@@ -107,7 +118,8 @@ pub mod fractinator {
 				Fraction {
 					numerator: a_frac.numerator * b_frac.numerator,
 					denominator: a_frac.denominator * b_frac.denominator,
-					positive: a_frac.positive == b_frac.positive
+					positive: a_frac.positive == b_frac.positive,
+					..Default::default()
 				}
 			},
 			Exp::Pow(a, b) => {
@@ -121,7 +133,8 @@ pub mod fractinator {
 				Fraction {
 					numerator: u32::pow(a_frac.numerator, b_frac.numerator), // BUG: Too large numbers *will* crash the program.
 					denominator: u32::pow(a_frac.denominator, b_frac.numerator),
-					positive: a_frac.positive || b_frac.numerator % 2 == 0
+					positive: a_frac.positive || b_frac.numerator % 2 == 0,
+					..Default::default()
 				}
 			},
 			Exp::Negative(a) => {
@@ -129,7 +142,8 @@ pub mod fractinator {
 				Fraction {
 					numerator: frac.numerator,
 					denominator: frac.denominator,
-					positive: !frac.positive
+					positive: !frac.positive,
+					..Default::default()
 				}
 			},
 			Exp::Inverse(a) => {
@@ -138,14 +152,15 @@ pub mod fractinator {
 				Fraction {
 					numerator: frac.denominator,
 					denominator: frac.numerator,
-					positive: frac.positive
+					positive: frac.positive,
+					..Default::default()
 				}
 			},
 			Exp::Number(value) => {
 				Fraction {
-					numerator: value.abs() as u32,
-					denominator: 1, // TODO: Handle decimal numbers by adding factors of 10 to the denominator.
-					positive: *value >= 0.
+					numerator: value.abs() as u32,// TODO: Handle decimal numbers by adding factors of 10 to the denominator.
+					positive: *value >= 0.,
+					..Default::default()
 				}
 			}
 		}
