@@ -4,10 +4,12 @@ use std::env;
 mod util;
 mod parsing;
 mod calculation;
+mod discrete;	
 
 pub use crate::calculation::calculatinator;
 pub use crate::calculation::printinator;
 pub use crate::calculation::fractinator;
+pub use crate::discrete::monomial;
 
 fn print_answer(input: &str) {
 	let equation = parsing::parser::parse(&input);
@@ -28,6 +30,7 @@ fn main() {
 	if args.len() > 1 {
 		print_answer(&args[1..].join(" "));
 	} else {
+		//monomial::greatest_common_divisor(222, 111);
 		println!("Calculatinator™");
 		loop {
 			print!("> ");
