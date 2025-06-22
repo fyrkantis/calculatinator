@@ -18,7 +18,7 @@ fn print_answer(input: &str) {
 
 	let parenthesis = match frac.denominator {1 => String::new(), _ => format!(" ({})", calculatinator::calculatinate(&equation))};
 		
-	println!("{} = {}{}", printed, frac.to_str(), parenthesis);
+	println!("{} = {}{}", printed, frac.to_string(), parenthesis);
 
 }
 

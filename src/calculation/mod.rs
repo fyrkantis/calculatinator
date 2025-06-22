@@ -8,7 +8,7 @@ pub mod calculatinator {
 			Exp::Pow(a, b) => f64::powf(calculatinate(a), calculatinate(b)),
 			Exp::Negative(a) => -calculatinate(a),
 			Exp::Inverse(a) => f64::powi(calculatinate(a), -1),
-			Exp::Number(value) => *value
+			Exp::Number(value) => value.to_float()
 		}
 	}
 }
@@ -45,7 +45,7 @@ pub mod printinator {
 			Exp::Pow(a, b) => parenthesis(format!("{}^{}", printiate(&a, true), printiate(&b, true))),
 			Exp::Negative(a) => parenthesis(format!("-{}", printiate(&a, true))),
 			Exp::Inverse(a) => format!("1/{}", printiate(&a, true)),
-			Exp::Number(value) => format!("{}", value)
+			Exp::Number(value) => format!("{}", value.to_string())
 		}
 	}
 }
@@ -53,6 +53,7 @@ pub mod printinator {
 pub mod fractinator {
 	pub use crate::util::exp::Exp;
 
+	/// (2 * positive - 1) * (numerator/denominator)^power
 	pub struct Fraction {
 		pub numerator: u32,
 		pub denominator: u32,
@@ -60,7 +61,7 @@ pub mod fractinator {
 		pub power: Option<Box<Vec<Fraction>>>
 	}
 	impl Fraction {
-		pub fn to_str(&self) -> String {
+		pub fn to_string(&self) -> String {
 			let sign = match self.positive {true => "", false => "-"};
 			let denom = match self.denominator {1 => String::new(), denominator => format!("/{}", denominator)};
 			format!("{}{}{}", sign, self.numerator, denom)
@@ -158,8 +159,8 @@ pub mod fractinator {
 			},
 			Exp::Number(value) => {
 				Fraction {
-					numerator: value.abs() as u32,// TODO: Handle decimal numbers by adding factors of 10 to the denominator.
-					positive: *value >= 0.,
+					numerator: value.digits,
+					denominator: 10_u32.pow(value.decimals),
 					..Default::default()
 				}
 			}
