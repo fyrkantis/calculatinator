@@ -52,6 +52,7 @@ pub mod printinator {
 
 pub mod fractinator {
 	pub use crate::util::exp::Exp;
+	pub use crate::discrete::monomial::greatest_common_divisor;
 
 	/// (2 * positive - 1) * (numerator/denominator)^power
 	pub struct Fraction {
@@ -96,14 +97,15 @@ pub mod fractinator {
 		match expression {
 			Exp::Term(a, b) => {
 				let (a_frac, b_frac) = (fractinate(a), fractinate(b));
-				let (a_num, b_num) = (a_frac.numerator * b_frac.denominator, b_frac.numerator * a_frac.denominator); // TODO: Make more efficient by looking for common denominators.
+				let gcd = greatest_common_divisor(a_frac.denominator, b_frac.denominator);
+				let (a_num, b_num) = (a_frac.numerator * b_frac.denominator / gcd, b_frac.numerator * a_frac.denominator / gcd); // TODO: Make more efficient by looking for common denominators.
 				let adding = a_frac.positive == b_frac.positive;
 				Fraction {
 					numerator: match adding {
 						true => a_num + b_num,
 						false => a_num.abs_diff(b_num)
 					},
-					denominator: a_frac.denominator * b_frac.denominator,
+					denominator: a_frac.denominator * b_frac.denominator / gcd,
 					positive: match adding { // TODO: Replace this mess of nested match statements.
 						true => a_frac.positive,
 						false => match a_num > b_num {
@@ -116,9 +118,11 @@ pub mod fractinator {
 			},
 			Exp::Factor(a, b) => {
 				let (a_frac, b_frac) = (fractinate(a), fractinate(b));
+				let (numerator, denominator) = (a_frac.numerator * b_frac.numerator, a_frac.denominator * b_frac.denominator);
+				let gcd = greatest_common_divisor(numerator, denominator); // TODO: Check if this can be made more efficient. (gcd before multiplication?)
 				Fraction {
-					numerator: a_frac.numerator * b_frac.numerator,
-					denominator: a_frac.denominator * b_frac.denominator,
+					numerator: numerator / gcd,
+					denominator: denominator / gcd,
 					positive: a_frac.positive == b_frac.positive,
 					..Default::default()
 				}
