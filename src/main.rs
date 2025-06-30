@@ -1,25 +1,21 @@
 use std::io;
 use std::env;
 
-mod util;
-mod parsing;
-mod calculation;
-mod discrete;	
-
-pub use crate::calculation::calculatinator;
-pub use crate::calculation::printinator;
-pub use crate::calculation::fractinator;
-pub use crate::discrete::monomial;
+use calculatinator::parsing::parser;
+use calculatinator::calculation::{
+    calculatinator::calculatinate, // TODO: Less horrible naming convention.
+    fractinator::fractinate,
+    printinator::printinate
+};
 
 fn print_answer(input: &str) {
-	let equation = parsing::parser::parse(&input);
-	let frac = fractinator::fractinate(&equation);
-	let printed = printinator::printiate(&equation, false);
+	let equation = parser::parse(&input);
+	let frac = fractinate(&equation);
+	let printed = printinate(&equation, false);
 
-	let parenthesis = match frac.denominator {1 => String::new(), _ => format!(" ({})", calculatinator::calculatinate(&equation))};
-		
+	let parenthesis = match frac.denominator {1 => String::new(), _ => format!(" ({})", calculatinate(&equation))};
+
 	println!("{} = {}{}", printed, frac.to_string(), parenthesis);
-
 }
 
 fn main() {
@@ -30,7 +26,6 @@ fn main() {
 	if args.len() > 1 {
 		print_answer(&args[1..].join(" "));
 	} else {
-		//monomial::greatest_common_divisor(222, 111);
 		println!("Calculatinator™");
 		loop {
 			print!("> ");
