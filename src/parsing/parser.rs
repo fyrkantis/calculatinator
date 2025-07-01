@@ -1,29 +1,63 @@
-use crate::symbols::{exp::Exp, constants::Constant, fpnum::FixedPointNumber};
-use crate::parsing::util::{splitting, cleaning::remove_whitespace};
+use crate::symbols::{exp::Exp, constants::Constant};
+use crate::parsing::util::{splitting/*, cleaning::remove_whitespace*/};
 
 fn parse_number(equation: &str) -> Exp {
     Exp::Number(equation.parse().unwrap())
 }
 
+/// Recognizes constants and removes whitespace between them.
 fn parse_constants(equation: &str) -> Exp {
-    const CONSTS: [(&str, Constant); 2] = [
-        ("pi", Constant::Pi),
-        ("π", Constant::Pi)
+    /// [(symbol name, name length, Constant type)]
+    const CONSTS: [(&str, usize, Constant); 6] = [
+        ("pi", 2, Constant::Pi),
+        ("π", 1, Constant::Pi),
+        ("tau", 3, Constant::Tau),
+        ("τ", 1, Constant::Tau),
+        ("e", 1, Constant::E),
+        ("i", 1, Constant::Imaginary)
     ]; 
-    let eq = equation.to_lowercase();
-    for (name, constant) in CONSTS.iter() {
+    let eq = equation.trim().to_lowercase();
+    let mut eq_chars = eq.chars();
+    let eq_chars_count = eq_chars.clone().count();
+    
+    // TODO: Refactor this function. Check for digit/character first.
+    // TODO: Use RegEx for constant detection.
+    // TODO: Define CONSTS in constants.rs module instead.
+
+    // Check if string starts with a constant, and if so parse it.
+    for (name, chars_count, constant) in CONSTS.iter() {
         if eq.starts_with(name) {
-           if eq.chars().count() <= name.chars().count() { // No more characters after this.
+            if eq_chars_count <= *chars_count { // No more characters after this.
                 return Exp::Constant(*constant)
-           } else { // There are more characters after this.
+            } else { // There are more characters after this.
                 return Exp::Factor(
                     Box::from(Exp::Constant(*constant)),
-                    Box::from(parse_constants(&eq[name.chars().count()..]))
+                    Box::from(parse_constants(&eq[*chars_count..]))
                 )
             }
         }
     }
-    parse_number(equation)
+
+    // Parses start of string as number. 
+    match eq_chars.next() {
+        None => panic!("Attempted to parse empty string \"{}\".", equation),
+        Some(first_char) => {
+            if !first_char.is_ascii_digit() {
+                panic!("Attempted to parse unknown symbol at the start of \"{}\".", equation)
+            }
+            let mut i = 1;
+            for digit in eq_chars {
+                if !digit.is_ascii_digit() && digit != '.' && digit != ',' {
+                    return Exp::Factor(
+                        Box::from(parse_number(&eq[..i])), // Parse previous digits as number.
+                        Box::from(parse_constants(&eq[i..])) // Continue parsing constants/numbers.
+                    )
+                }
+                i += 1;
+            }
+            parse_number(&eq) // Parse the entire string as a number.
+        }
+    }
 }
 
 fn parse_nested(equation: &str) -> Exp {
@@ -83,6 +117,6 @@ fn parse_term(equation: &str, negate: bool) -> Exp {
 }
 
 pub fn parse(equation: &str) -> Exp {
-    parse_term(&remove_whitespace(equation), false)
+    parse_term(/*&remove_whitespace(*/equation/*)*/, false)
 }
 
