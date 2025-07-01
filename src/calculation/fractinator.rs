@@ -1,5 +1,9 @@
-use crate::symbols::{exp::Exp, constants::Constant};
+use crate::symbols::{exp::Exp, constants::{Constant, constant_str}};
 use crate::discrete::monomial::greatest_common_divisor;
+
+fn join_consts_str(consts: &Vec<Constant>) -> String {
+    consts.iter().map(constant_str).collect::<Vec<_>>().join("")
+}
 
 /// (2 * positive - 1) * (numerator/denominator)^power
 pub struct Fraction {
@@ -12,9 +16,14 @@ pub struct Fraction {
 }
 impl Fraction {
     pub fn to_string(&self) -> String {
-        let sign = match self.positive {true => "", false => "-"};
-        let denom = match self.denominator {1 => String::new(), denominator => format!("/{}", denominator)};
-        format!("{}{}{}", sign, self.numerator, denom)
+        format!("{}{}{}{}{}{}",
+            match self.positive {true => "", false => "-"},
+            if self.numerator_consts.is_empty() || self.numerator != 1 {self.numerator.to_string()} else {String::new()},
+            join_consts_str(&self.numerator_consts),
+            if self.denominator != 1 || !self.denominator_consts.is_empty() {"/"} else {""},
+            match self.denominator {1 => String::new(), denominator => denominator.to_string()},
+            join_consts_str(&self.denominator_consts)
+        )
     }
 
     pub fn to_float(&self) -> f64 {
