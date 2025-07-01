@@ -18,7 +18,7 @@ pub fn constant_str(constant: &Constant) -> &str {
         Constant::Tau => "τ",
         Constant::E => "e",
         Constant::Euler => "γ",
-        Constant::GoldenRatio => "ϕ",
+        Constant::GoldenRatio => "Φ",
         Constant::Imaginary => "i"
     }
 }

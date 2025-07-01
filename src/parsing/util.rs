@@ -30,8 +30,8 @@ pub mod splitting {
 	}
 }
 
-pub mod cleaning {
+/*pub mod cleaning {
 	pub fn remove_whitespace(string: &str) -> String {
 		string.chars().filter(|character| !character.is_whitespace()).collect() // https://stackoverflow.com/a/57063944
 	}
-}
+}*/
