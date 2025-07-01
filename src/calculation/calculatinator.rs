@@ -10,6 +10,7 @@ pub fn calculatinate(expression: &Exp) -> f64 {
         Exp::Inverse(a) => f64::powi(calculatinate(a), -1),
         Exp::Number(value) => value.to_float(),
         Exp::Constant(constant) => match constant {
+            Constant::Variable(_) => 1.,
             Constant::Pi => consts::PI,
             Constant::Tau => consts::TAU,
             Constant::E => consts::E,

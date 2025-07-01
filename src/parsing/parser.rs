@@ -1,8 +1,30 @@
-use crate::symbols::exp::Exp;
+use std::str::Chars;
+use crate::symbols::{exp::Exp/*, constants::Constant*/, fpnum::FixedPointNumber};
 use crate::parsing::util::{splitting, cleaning::remove_whitespace};
 
 fn parse_number(equation: &str) -> Exp {
     Exp::Number(equation.parse().unwrap())
+}
+
+fn parse_constant(name: char) -> Exp {
+    Exp::Number(FixedPointNumber::default())
+}
+
+fn parse_constant_chars(mut chars: Chars<'_>) -> Option<Exp> {
+    match chars.next() {
+        Some(char_current) => match parse_constant_chars(chars) {
+            Some(exp_next) => Some(Exp::Factor(Box::from(parse_constant(char_current)), Box::from(exp_next))),
+            None => Some(parse_constant(char_current))
+        },
+        None => None
+    }
+}
+fn parse_constants(equation: &str) -> Exp {
+    parse_number(equation)
+    /*match parse_constant_chars(equation.chars()) {
+        Some(exp) => exp,
+        None => panic!("Attempted to parse empty character sequence \"{}\"", equation)
+    }*/
 }
 
 fn parse_nested(equation: &str) -> Exp {
@@ -24,8 +46,8 @@ fn parse_nested(equation: &str) -> Exp {
         },
         None => {
             match negate {
-                true => Exp::Negative(Box::from(parse_number(actual_equation))),
-                false => parse_number(actual_equation)
+                true => Exp::Negative(Box::from(parse_constants(actual_equation))),
+                false => parse_constants(actual_equation)
             }
         }
     }

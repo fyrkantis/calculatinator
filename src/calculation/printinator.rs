@@ -31,6 +31,7 @@ pub fn printinate(expression: &Exp, parenthesize: bool) -> String {
         Exp::Inverse(a) => format!("1/{}", printinate(&a, true)),
         Exp::Number(value) => format!("{}", value.to_string()),
         Exp::Constant(constant) => match constant {
+            Constant::Variable(name) => name.to_string(),
             Constant::Pi => String::from("π"),
             Constant::Tau => String::from("τ"),
             Constant::E => String::from("e"),
