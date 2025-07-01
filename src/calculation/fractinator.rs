@@ -1,4 +1,4 @@
-use crate::util::exp::Exp;
+use crate::symbols::exp::Exp;
 use crate::discrete::monomial::greatest_common_divisor;
 
 /// (2 * positive - 1) * (numerator/denominator)^power

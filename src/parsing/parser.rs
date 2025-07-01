@@ -1,6 +1,5 @@
-use crate::util::exp::Exp;
-use crate::util::splitting;
-use crate::util::cleaning::remove_whitespace;
+use crate::symbols::exp::Exp;
+use crate::parsing::util::{splitting, cleaning::remove_whitespace};
 
 fn parse_number(equation: &str) -> Exp {
     Exp::Number(equation.parse().unwrap())

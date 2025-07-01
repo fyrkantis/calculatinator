@@ -1,4 +1,4 @@
-use crate::util::exp::Exp;
+use crate::symbols::exp::Exp;
 
 pub fn calculatinate(expression: &Exp) -> f64 {
     match expression {

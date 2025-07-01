@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-	use crate::util::exp;
+	use crate::symbols::exp;
 	use crate::parsing::parser::*;
 
 	#[test]

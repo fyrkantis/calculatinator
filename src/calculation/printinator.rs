@@ -1,4 +1,4 @@
-use crate::util::exp::Exp;
+use crate::symbols::exp::Exp;
 
 pub fn printinate(expression: &Exp, parenthesize: bool) -> String {
     let parenthesis = |input: String| -> String { // TODO: Is this really the prettiest possible solution?
