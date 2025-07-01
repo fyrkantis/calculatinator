@@ -1,4 +1,4 @@
-use crate::symbols::exp::Exp;
+use crate::symbols::{exp::Exp, constants::Constant};
 use crate::discrete::monomial::greatest_common_divisor;
 
 /// (2 * positive - 1) * (numerator/denominator)^power
@@ -114,6 +114,7 @@ pub fn fractinate(expression: &Exp) -> Fraction {
                 denominator: 10_u32.pow(value.decimals),
                 ..Default::default()
             }
-        }
+        },
+        Exp::Constant(_) => Fraction::default()
     }
 }

@@ -1,4 +1,8 @@
-pub enum Constants {
+pub enum Constant {
     Pi,
-    E
+    Tau,
+    E,
+    Euler,
+    GoldenRatio,
+    Imaginary
 }

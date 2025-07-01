@@ -12,5 +12,5 @@ pub enum Exp {
     /// 1/a
     Inverse(Box<Exp>),
     Number(fpnum::FixedPointNumber),
-//    Constant(constants::Constant)
+    Constant(constants::Constant)
 }
