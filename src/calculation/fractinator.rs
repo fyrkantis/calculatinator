@@ -14,7 +14,7 @@ impl Fraction {
     pub fn to_string(&self) -> String {
         let sign = match self.positive {true => "", false => "-"};
         let denom = match self.denominator {1 => String::new(), denominator => format!("/{}", denominator)};
-        format!("{}{}{}", sign, denom)
+        format!("{}{}{}", sign, self.numerator, denom)
     }
 
     pub fn to_float(&self) -> f64 {

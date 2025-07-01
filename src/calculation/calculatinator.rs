@@ -1,5 +1,4 @@
-use crate::symbols::{exp::Exp, constants::Constant};
-use std::f64::consts;
+use crate::symbols::{exp::Exp, constants::constant_float};
 
 pub fn calculatinate(expression: &Exp) -> f64 {
     match expression {
@@ -9,14 +8,6 @@ pub fn calculatinate(expression: &Exp) -> f64 {
         Exp::Negative(a) => -calculatinate(a),
         Exp::Inverse(a) => f64::powi(calculatinate(a), -1),
         Exp::Number(value) => value.to_float(),
-        Exp::Constant(constant) => match constant {
-            Constant::Variable(_) => 1.,
-            Constant::Pi => consts::PI,
-            Constant::Tau => consts::TAU,
-            Constant::E => consts::E,
-            Constant::Euler => 1.,//consts::EGAMMA,
-            Constant::GoldenRatio => 1.,//consts::PHI, //TODO: Implement.
-            Constant::Imaginary => 1.
-        }
+        Exp::Constant(constant) => constant_float(constant)
     }
 }
