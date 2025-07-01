@@ -1,10 +1,11 @@
 /// A positive number number with set number of decimals: digits / 10^decimals
+#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Copy, Clone)]
 pub struct FixedPointNumber {
     pub digits: u32,
     pub decimals: u32
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ParseFixedPointNumberError {
     pub e: std::num::ParseIntError
 }

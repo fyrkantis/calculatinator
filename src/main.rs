@@ -13,7 +13,7 @@ fn print_answer(input: &str) {
 	let frac = fractinate(&equation);
 	let printed = printinate(&equation, false);
 
-	let parenthesis = match frac.denominator {1 => String::new(), _ => format!(" ({})", calculatinate(&equation))};
+	let parenthesis = match frac.denominator {/*1 => String::new(), */_ => format!(" ({})", calculatinate(&equation))};
 
 	println!("{} = {}{}", printed, frac.to_string(), parenthesis);
 }

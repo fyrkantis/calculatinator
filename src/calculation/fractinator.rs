@@ -5,6 +5,8 @@ use crate::discrete::monomial::greatest_common_divisor;
 pub struct Fraction {
     pub numerator: u32,
     pub denominator: u32,
+    pub numerator_consts: Vec<Constant>,
+    pub denominator_consts: Vec<Constant>,
     pub positive: bool,
     pub power: Option<Box<Vec<Fraction>>>
 }
@@ -12,7 +14,7 @@ impl Fraction {
     pub fn to_string(&self) -> String {
         let sign = match self.positive {true => "", false => "-"};
         let denom = match self.denominator {1 => String::new(), denominator => format!("/{}", denominator)};
-        format!("{}{}{}", sign, self.numerator, denom)
+        format!("{}{}{}", sign, denom)
     }
 
     pub fn to_float(&self) -> f64 {
@@ -23,7 +25,7 @@ impl Fraction {
         if !self.positive {
             result *= -1.;
         }
-        /*if root != 1 {
+        /*if root != 1 k
             return f64::powf(result, f64::powi(root, -1));
         }*/
         result
@@ -34,6 +36,8 @@ impl Default for Fraction {
         Fraction {
             numerator: 0,
             denominator: 1,
+            numerator_consts: Vec::new(),
+            denominator_consts: Vec::new(),
             positive: true,
             power: None
         }
@@ -59,7 +63,7 @@ pub fn fractinate(expression: &Exp) -> Fraction {
                         true => a_frac.positive,
                         false => b_frac.positive
                     }
-                },
+                }, // TODO: Implement constants here.
                 ..Default::default()
             }
         },
@@ -70,6 +74,8 @@ pub fn fractinate(expression: &Exp) -> Fraction {
             Fraction {
                 numerator: numerator / gcd,
                 denominator: denominator / gcd,
+                numerator_consts: [&a_frac.numerator_consts[..], &b_frac.numerator_consts[..]].concat(),
+                denominator_consts: [&a_frac.denominator_consts[..], &b_frac.denominator_consts[..]].concat(),
                 positive: a_frac.positive == b_frac.positive,
                 ..Default::default()
             }
@@ -86,16 +92,14 @@ pub fn fractinate(expression: &Exp) -> Fraction {
                 numerator: u32::pow(a_frac.numerator, b_frac.numerator), // BUG: Too large numbers *will* crash the program.
                 denominator: u32::pow(a_frac.denominator, b_frac.numerator),
                 positive: a_frac.positive || b_frac.numerator % 2 == 0,
-                ..Default::default()
+                ..a_frac
             }
         },
         Exp::Negative(a) => {
             let frac = fractinate(a);
             Fraction {
-                numerator: frac.numerator,
-                denominator: frac.denominator,
                 positive: !frac.positive,
-                ..Default::default()
+                ..frac
             }
         },
         Exp::Inverse(a) => {
@@ -104,8 +108,9 @@ pub fn fractinate(expression: &Exp) -> Fraction {
             Fraction {
                 numerator: frac.denominator,
                 denominator: frac.numerator,
-                positive: frac.positive,
-                ..Default::default()
+                numerator_consts: frac.denominator_consts,
+                denominator_consts: frac.numerator_consts,
+                ..frac
             }
         },
         Exp::Number(value) => {
@@ -115,6 +120,12 @@ pub fn fractinate(expression: &Exp) -> Fraction {
                 ..Default::default()
             }
         },
-        Exp::Constant(_) => Fraction::default()
+        Exp::Constant(constant) => {
+            Fraction {
+                numerator: 1,
+                numerator_consts: vec![*constant],
+                ..Default::default()
+            }
+        }
     }
 }

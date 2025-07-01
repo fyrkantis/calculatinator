@@ -1,5 +1,6 @@
 use crate::symbols::{fpnum, constants};
 
+#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub enum Exp {
     /// a + b
     Term(Box<Exp>, Box<Exp>),

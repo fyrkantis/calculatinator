@@ -1,4 +1,4 @@
-use crate::symbols::{exp::Exp, constants::Constant};
+use crate::symbols::{exp::Exp, constants::constant_str};
 
 pub fn printinate(expression: &Exp, parenthesize: bool) -> String {
     let parenthesis = |input: String| -> String { // TODO: Is this really the prettiest possible solution?
@@ -30,14 +30,6 @@ pub fn printinate(expression: &Exp, parenthesize: bool) -> String {
         Exp::Negative(a) => parenthesis(format!("-{}", printinate(&a, true))),
         Exp::Inverse(a) => format!("1/{}", printinate(&a, true)),
         Exp::Number(value) => format!("{}", value.to_string()),
-        Exp::Constant(constant) => match constant {
-            Constant::Variable(name) => name.to_string(),
-            Constant::Pi => String::from("π"),
-            Constant::Tau => String::from("τ"),
-            Constant::E => String::from("e"),
-            Constant::Euler => String::from("γ"),
-            Constant::GoldenRatio => String::from("ϕ"),
-            Constant::Imaginary => String::from("i")
-        }
+        Exp::Constant(constant) => constant_str(constant).to_string()
     }
 }
