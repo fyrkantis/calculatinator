@@ -1,6 +1,7 @@
 use crate::symbols::{fpnum, constants};
 
-#[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Clone)]
+// TODO: Enable PartialOrd and Ord.
+#[derive(Debug, Hash, PartialEq, Eq/*, PartialOrd, Ord*/, Clone)]
 pub enum Exp {
 	/// a + b
 	Term(Box<Exp>, Box<Exp>),
@@ -12,6 +13,6 @@ pub enum Exp {
 	Negative(Box<Exp>),
 	/// 1/a
 	Inverse(Box<Exp>),
-	Number(fpnum::FixedPointNumber),
+	Number(fpnum::FPNum),
 	Constant(constants::Constant)
 }

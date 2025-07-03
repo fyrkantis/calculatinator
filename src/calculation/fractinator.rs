@@ -5,6 +5,7 @@ use crate::discrete::monomial::greatest_common_divisor;
 
 
 /// (2 * positive - 1) * (numerator/denominator)^power
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Fraction {
 	pub numerator: u32,
 	pub denominator: u32,
@@ -13,7 +14,23 @@ pub struct Fraction {
 	pub power: Option<Box<Vec<Fraction>>>
 }
 impl Fraction {
-	pub fn to_string(&self) -> String { // TODO: Switch to unsigned integer type, with abs outside the function.
+	pub fn to_float(&self) -> f64 {
+		let mut result = self.numerator as f64;
+		if self.denominator != 0 {
+			result /= self.denominator as f64;
+		}
+		for (constant, count) in self.consts.iter() {
+			result *= f64::powi(constant_float(constant), *count); 
+		}
+		if !self.positive {
+			result *= -1.;
+		}
+		// TODO: Implement powers.
+		result
+	}
+}
+impl ToString for Fraction {
+	fn to_string(&self) -> String { // TODO: Switch to unsigned integer type, with abs outside the function.
 		fn join_consts_str<'a>(consts: impl Iterator<Item = (&'a Constant, &'a i32)>) -> String {
 			consts.map(|(constant, count)| format!(
 				"{}{}",
@@ -33,21 +50,6 @@ impl Fraction {
 			denominator_consts
 		)
 	}
-
-	pub fn to_float(&self) -> f64 {
-		let mut result = self.numerator as f64;
-		if self.denominator != 0 {
-			result /= self.denominator as f64;
-		}
-		for (constant, count) in self.consts.iter() {
-			result *= f64::powi(constant_float(constant), *count); 
-		}
-		if !self.positive {
-			result *= -1.;
-		}
-		// TODO: Implement powers.
-		result
-	}
 }
 impl Default for Fraction {
 	fn default() -> Fraction {
@@ -60,7 +62,20 @@ impl Default for Fraction {
 		}
 	}
 }
+//impl Ord for Fraction { // TODO: Fraction comparison.
+//	fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+//		self.to_float().cmp(other.to_float())
+//	}
+//}
+//impl PartialOrd for Fraction {fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {Some(self.cmp(other))}}
+impl std::hash::Hash for Fraction {
+	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+		self.to_string().hash(state);
+	}
+}
+
 // TODO: Always simplify to either pi or tao, store user preference or something.
+
 /// Combines two constant maps, either adding or subtracting the counts a_consts +/- b_consts.
 /// The merged map is returned along with a scaling factor s, to be multiplied with the result as
 /// R * 2^s.
