@@ -3,9 +3,9 @@ use std::env;
 
 use calculatinator::parsing::parser;
 use calculatinator::calculation::{
-    calculatinator::calculatinate, // TODO: Less horrible naming convention.
-    fractinator::fractinate,
-    printinator::printinate
+	calculatinator::calculatinate, // TODO: Less horrible naming convention.
+	fractinator::fractinate,
+	printinator::printinate
 };
 
 fn print_answer(input: &str) {
